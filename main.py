@@ -152,18 +152,30 @@ def generate_dataset():
         input_dataset.append(input_layer)
 
         # Add corresponding expected output to the layer
-        output_dataset.append(i)
         
 
         for p in range(TEST_CASES_PER_MAP - 1):
             # print("Original input layer: ", input_layer)
             input_dataset.append(perform_mutate(input_layer))
-            output_dataset.append(i)        
+        
+        output_layer = []
+        for p in range(10):
+            if p == i:
+                output_layer.append(1)
+            else:
+                output_layer.append(0)
+        
+        for p in range(TEST_CASES_PER_MAP):     
+            output_dataset.append(output_layer)
 
+    print("Dataset: ")
+    print("Input Layers: ")
     for i in input_dataset:
         print(i)
-
-    print(output_dataset)
+    print()
+    print("Output Layers: ")
+    for i in output_dataset:
+        print(i)
 
 def main():
     initialize_values()
