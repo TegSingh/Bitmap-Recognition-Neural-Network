@@ -1,18 +1,17 @@
 from random import randint
 import numpy as np
 from input_values import *
+from decimal import Decimal
 
 # Initialize bitmaps
 values = [] 
-
-
 
 TEST_CASES_PER_MAP = 3
 NUM_MUTATIONS = 2
 INPUT_LAYER_LENGTH = 45
 HIDDEN_LAYER_LENGTH = 10
 OUTPUT_LAYER_LENGTH = 10
-
+LEARNING_RATE = 0.3
 
 class ANN(object):
     
@@ -120,16 +119,20 @@ class ANN(object):
         updated_input = []
         random_bias = 0.99
         for i in input:
-            updated_input.append(1/(1+np.exp(-i)))
+            activation = 1/(1 + np.exp(-i))
+            updated_input.append(activation)
         return updated_input
 
     # Define the sigmoid function for backward propagation
-    def sigmoid_backward(self):
-        pass
+    def sigmoid_backward(self, input):
+        updated_input = []
+        for i in input:
+            updated_input.append(i*(1-i))
+        return updated_input
 
     # Method to perform forward propagation one layer at a time
     def forward_propagate_single(self, layer1, weights):
-        print("Individual Forward Propagation method called")
+        # print("Individual Forward Propagation method called")
 
         output_layer = []
 
@@ -144,7 +147,7 @@ class ANN(object):
 
     # Method to perform backward propagation
     def forward_propagate(self, input_layer): 
-        print("Forward Propagation method called")
+        # print("Forward Propagation method called")
         
         # Perform the forward propagation from input layer to hidden layer and Apply Sigmoid
         self.input_layer = input_layer
@@ -157,32 +160,70 @@ class ANN(object):
         output_layer_activated = self.sigmoid_forward(output_layer)
         self.output_layer = output_layer_activated
 
-        self.printNN()
+        # self.printNN()
 
     # Method to perform backward propagation
-    def backward_propagate(self): 
-        pass
+    def backward_propagate(self, expected_output, input_values): 
+        # print("Backward propagation method called")
 
-    # Training method
-    def train_ANN(self): 
-        pass
+        for i in range(len(self.weights2)): # 10
+            
+            # Calculate cost and change to absolute value
+            cost = abs(expected_output[i] - self.output_layer[i])
+            
+            for j in range(len(self.weights2[0])): # 10
+            
+                # Choose weights in second layer    
+                w1 = self.weights2[i][j]
+                # Get corresponding outputs (expected and forward fed)
+                w1_gradient = cost * self.output_layer[i] * (1 - self.output_layer[i])
+                self.weights2[i][j] -= LEARNING_RATE * w1_gradient * self.hidden_layer[j]
+                # print(self.weights2[i][j])
+
+                # Calculate updates to weights in second layer 
+                for k in range(len(self.weights1[0])): # 45
+                        # Choose weights in first layer
+                        w2 = self.weights1[j][k]
+                        w2_gradient = w1_gradient * w1 * self.hidden_layer[j] * (1 - self.hidden_layer[j])
+                        self.weights1[j][k] -= LEARNING_RATE * w2_gradient * self.input_layer[k]
 
 def main():
 
     network = ANN()
     initialize_values(values) # Initialize values
     network.generate_dataset() # Generate input and output layers
-    network.set_weights()
+    network.set_weights() # Set the weight matrices
 
     # Checking output
     sum = 0
     for i in range(len(network.input_dataset[0])):
-        print(network.input_dataset[0][i], network.weights1[0][i], network.input_dataset[0][i]*network.weights1[0][i])
+        # print(network.input_dataset[0][i], network.weights1[0][i], network.input_dataset[0][i]*network.weights1[0][i])
         sum += (network.input_dataset[0][i]*network.weights1[0][i])
-    print(sum)
+    # print(sum)
 
-    for i in network.input_dataset:
-        network.forward_propagate(i)
+    for i in range(len(network.input_dataset)):
+        network.forward_propagate(network.input_dataset[i])
+        network.backward_propagate(network.output_dataset[i], network.input_dataset[i])
+
+    print("Trained weights: ")
+    print("Updated Weight Matrix 1: ")
+    for i in network.weights1:
+        print(i)
+
+    print("\nUpdated Weight Matrix 2: ")
+    for i in network.weights2:
+        print(i)
+    
+    # Test the values
+    test_value = [0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0]
+    network.forward_propagate(test_value)
+    max = 0
+    for i in range(len(network.output_layer)):
+        if network.output_layer[i] >= max: 
+            max = i
+    print(network.output_layer)
+    print("\nTesting:\nExpected output: 2 Prediction: ", max)
+    
 
 if __name__ == '__main__':
     main()
